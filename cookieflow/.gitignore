@@ -1,0 +1,11 @@
+/target/
+/.buildpath
+.classpath
+.project
+.settings/
+/.metadata/
+/bin/
+/logs/
+*.log
+*.iml
+.DS_Store
