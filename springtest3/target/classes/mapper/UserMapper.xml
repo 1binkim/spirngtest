@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+                        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mapper.UserMapper">
+
+  <!-- username 중복 여부 확인 -->
+  <select id="existsByUsername" resultType="int" parameterType="string">
+    SELECT COUNT(*) FROM users WHERE login_id = #{loginId}
+  </select>
+
+  <!-- 이메일 중복 여부 확인 -->
+  <select id="existsByEmail" resultType="int" parameterType="string">
+    SELECT COUNT(*) FROM users WHERE email = #{email}
+  </select>
+
+  <!-- 새 사용자 삽입 -->
+  <insert id="insertUser" parameterType="model.User">
+    INSERT INTO users (
+      user_id, login_id, password, name, email, role
+    ) VALUES (
+      seq_users.NEXTVAL, #{loginId}, #{password}, #{name}, #{email}, #{role}
+    )
+  </insert>
+
+  <!-- 로그인할 때 loginId로 사용자 찾기 -->
+  <select id="findByUsername" resultType="model.User" parameterType="string">
+    SELECT user_id,
+           login_id AS loginId,
+           password,
+           name,
+           email,
+           role
+    FROM users
+    WHERE login_id = #{loginId}
+  </select>
+
+  <!-- (선택) 사용자 권한 조회 -->
+  <select id="findRolesByUserId" resultType="string" parameterType="long">
+    SELECT role
+    FROM user_roles
+    WHERE user_id = #{userId}
+  </select>
+  
+  <select id="findByEmail" parameterType="string" resultType="model.User">
+  SELECT * FROM users WHERE email = #{email}
+</select>
+<select id="findUserIdByLoginId" parameterType="string" resultType="long">
+  SELECT user_id FROM users WHERE login_id = #{loginId}
+</select>
+</mapper>

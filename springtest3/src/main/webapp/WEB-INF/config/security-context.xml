@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-5.8.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+  <!-- (1) @Service, @Component 스캔 -->
+ <context:component-scan base-package="controller,login,service"/>
+
+  <!-- (5) Spring Security 설정 -->
+
+<security:http use-expressions="true" auto-config="true">
+  
+  <!-- 비회원 접근 허용 -->
+  <security:intercept-url pattern="/login" access="permitAll"/>
+  <security:intercept-url pattern="/loginForm" access="permitAll"/>
+  <security:intercept-url pattern="/register/**" access="permitAll"/>
+  <security:intercept-url pattern="/resources/**" access="permitAll"/>
+  <security:intercept-url pattern="/bookstore/books" access="permitAll"/>
+  <security:intercept-url pattern="/bookstore/book/**" access="permitAll"/>
+<!-- 조회성: 비회원 허용 -->
+<security:intercept-url pattern="/bookstore/cart/resolve" method="POST" access="permitAll"/>
+
+<!-- 결제 처리: 로그인 필수 -->
+<!-- 폼 화면도 로그인 필요로 묶기 -->
+<security:intercept-url pattern="/bookstore/checkoutForm" method="GET" access="isAuthenticated()"/>
+<security:intercept-url pattern="/bookstore/checkout"     method="POST" access="isAuthenticated()"/>
+
+
+<!-- (선택) 카트 조회 전체 GET 허용, 변경 POST는 보호 -->
+<security:intercept-url pattern="/bookstore/cart/**" method="GET"  access="permitAll"/>
+<security:intercept-url pattern="/bookstore/cart/**" method="POST" access="isAuthenticated()"/>
+
+<security:intercept-url pattern="/order/**" access="hasRole('CUSTOMER')"/>
+<security:intercept-url pattern="/mypage/**" access="hasRole('CUSTOMER')"/>
+
+  <!-- 로그인 설정 -->
+  <security:form-login
+      login-page="/loginForm"
+      login-processing-url="/login"
+      username-parameter="username"
+      password-parameter="password"
+      authentication-success-handler-ref="loginSuccess"
+      authentication-failure-url="/loginForm?error=true"/>
+
+  <!-- 로그아웃 설정 -->
+  <security:logout
+      logout-url="/logout"
+      logout-success-url="/bookstore/books"/>
+</security:http>
+
+
+  <!-- (6) AuthenticationManager -->
+  <security:authentication-manager>
+    <security:authentication-provider user-service-ref="loginService">
+      <security:password-encoder ref="bpe"/>
+    </security:authentication-provider>
+  </security:authentication-manager>
+<!-- 기존에 있던 permitAll 항목 바로 아래에 추가 -->
+
+
+
+
+  <!-- (7) 기타 빈 -->
+  <bean id="bpe" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+  <bean id="loginSuccess" class="login.CustomerLoginSuccessHandler"/>
+  <bean id="accessDenied" class="login.CustomerAccessDeniedHandler"/>
+</beans>
